@@ -1,4 +1,6 @@
-﻿import math
+﻿# by DataTerminatorX
+
+import math
 # =================
 # 冒泡排序
 # 两层循环，内层循环逐个比较相邻俩元素，按比较条件决定是否交换次序
