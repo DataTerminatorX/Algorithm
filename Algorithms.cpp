@@ -301,7 +301,7 @@ int main()
 	int a[n] = {1,3,7,2,5,6,4};
 	quick_sort(a, 0, n-1);
 	while (++i<n)
-	zcout<<a[i]<<endl; 
+	cout<<a[i]<<endl; 
 
 /* 	string s ="miao is not mao";
 	inverse_words(s);
