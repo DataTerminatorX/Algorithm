@@ -282,41 +282,103 @@ string max_subsequence(string &s1, string &s2)
 
 //===============================
 // 最长递增子数组
-// 求一个整数数组中长度最长的递增数组，如输入 [3,1,4,2,5]，输出 [3,4,5] 和 [1,2,5]
-// 思路: 动态规划的思想, 对于第k个数A[k], 用L[k]代表以A[k]结尾的最大递增子数组的长度, 则问题等价转换为：
-//      求 L[1]~L[n]中的最大值，然后根据这个最大值L[i]对应的记录回溯最长递增数组（跟Viterbi算法异曲同工），具体地：
-//      L[0]=1，然后令i从0到k-1, 则有递推式: 若A[k]>A[i]，则L[k]=max(L[i]+1)，并记录下对应的索引i(有多个则都记录)，若全无，则 L[k] =1(记录索引k)
-//      找出最大的L[i]，并回溯最长递增数组
+// 求一个整数数组中长度最长的递增数组，如输入 [3,1,4,2,5]，分别实现 1.只输出一组，如[3,4,5] 2. 输出所有的，如[3,4,5] 和 [1,2,5] 
+// 思路: 动态规划的思想, 对于第i个数A[i], 用L[i]代表以A[i]结尾的最大递增子数组的长度, 则问题等价转换为：
+//      求 L[1]~L[n]中的最大值，然后根据这个最大值(一个或多个) L[j]对应的记录回溯最长递增数组（跟Viterbi算法异曲同工），具体地：
+//      L[0]=1，然后令j从0到i-1, 则有递推式: 若A[i]>A[j]，则L[i]=max(L[j]+1)、对于所有j，并记录下对应的索引j(有多个则都记录)，若全无，则 L[i] =1(记录索引i)
+//      找出最大的L[j]，并回溯最长递增数组，如果有多个最大值，则对每一个最大值 L[j]，找出其记录的所有索引，并根据索引逐个回溯，有点类似一个多叉树，可以用递归的思想打印所有子数组
+// 改进点(ToDo): 每轮比较当中有冗余比较, 可以先给 A 进行排序, 这样每次比较 A[i] 和 A[0]~A[i-1] 时，只需要比较比 A[i] 小的即可
 
-void binary_max(&a, &b)
-{
-    if (a<b)
-        a=b;
-}
-
-void max_ascend_substr(int a[], int n)
+// 只输出一组最大长度递增子数组 (有bug，继续调)
+void max_ascend_substr(int a[], int n)
 {
 
-    vector<vector<int>> states(n);
-    int i,j
+    int states[n][2];
+    int i,j;
+    int state[2]={1,0}; // state[0] 用来记录 L[i], state[1] 用来记录索引i
     for (i=0; i<n; i++)
     {
-        vector<int> state; // state[0] 用来记录 L[k], state[1:end] 用来记录索引i
         if(i==0)
         {
-            state.push_back(1)
-            state.push_back(0)
-            states.push_back(state)
+            state[1]=0;
         }
         else
         {
+            state[1]=i;
             for(j=0; j<i; j++)
             {
-
+                if(a[i]>a[j])
+                {
+                    if(states[j][0]+1 >= state[0])
+                    {
+                        state[0] = states[j][0]+1;
+                        state[1] = j;
+                    }
+                }
             }
         }
-    } 
+        states[i][0] = state[0];
+        states[i][1] = state[1];
+    }
+    // 输出
+    int b[2]={0,0};
+    for (i=0; i<n; i++)
+    {
+        if(states[i][0]>b[0])
+        {
+            b[0] = states[i][0];           
+            b[1] = states[i][1];           
+        }
+    }
+    i = b[1];
+    cout<<a[i]<<endl;
+    while(states[i][1] != i)
+    {
+        i = states[i][1];      
+        cout<<a[i]<<endl; 
+    }
 }
+
+// ToDo 输出多组拥有同样最大长度的递增数组(要用 record 额外记录第 i 个数的 i-1 次比较的结果, 以找出多个最大值, 输出时需要用递归的思想打印)
+/*
+void max_ascend_multi_substr(int a[], int n)
+{
+
+    vector<vector<int>> states(n);
+    int i,j;
+    vector<int> state; // state[0] 用来记录 L[i], state[1:end] 用来记录索引i
+    vector<int> record; // record[0~i-1] 用来记录每个 L[j]+1 
+    for (i=0; i<n; i++)
+    {
+        state.clear();
+        state.push_back(1);
+        if(i==0)
+        {
+            state.push_back(0);
+            states.push_back(state);
+        }
+        else
+        {
+            state.push_back(1);
+            state.push_back(i)
+            for(j=0; j<i; j++)
+            {
+                if(a[i]>a[j])
+                {
+                    if(states[j][0]+1 <= state[0])
+                    {
+                        state[0](states[j][0]+1)
+                        state.push_back()
+                    }
+                }
+            }
+            states.push_back(state)
+        }
+    }
+
+    //Todo: 打印多个最大长度数组 
+}
+*/
 
 
 //===============================
@@ -343,11 +405,13 @@ void upstairs(int n_remain, int &count)
 
 int main()
 {
+    /*
      int n =7,i=-1;
     int a[n] = {1,3,7,2,5,6,4};
     quick_sort(a, 0, n-1);
     while (++i<n)
     cout<<a[i]<<endl; 
+    */
 
 /*     string s ="miao is not mao";
     inverse_words(s);
@@ -385,9 +449,13 @@ int main()
     int a[n] = {2,2,3,2,1,1,2,1};
     cout<< find_nonregular_id(a, n)<<endl; */
     
-    
-    
 /*  int n = 5,count = 0;
     upstairs(n,count);
     cout<<count<<endl; */
+
+int n=5;
+int a[5] = {1,2,3,4,5};
+max_ascend_substr(a, n);
 }
+
+
