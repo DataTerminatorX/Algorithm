@@ -1,4 +1,6 @@
-import math
+﻿import math,random,copy
+import itertools as it
+import numpy as np
 
 '''
 目录
@@ -15,6 +17,8 @@ import math
           |--后续遍历
           |--树分层打印
           |--判断镜像树 ToDo
+|--Viterbi算法(动态规划)
+|--有向无环图节点排序
 '''
 
 # =================
@@ -62,10 +66,11 @@ def quick_sort(L, low_index, high_index):
     
     quick_sort(L, low_index, i-1)
     quick_sort(L, i+1,high_index)
-    
-L=[5,1,3,7,8,2,6,9,0,4,5,5,1,1]
-quick_sort( L, 0, len(L)-1)
-print L
+
+# test code    
+# L=[5,1,3,7,8,2,6,9,0,4,5,5,1,1]
+# quick_sort( L, 0, len(L)-1)
+# print L
 
 # 非完美思路：在L中找一个数作为轴，比它(们)小的数放low_L，大的数放high_L，然后对俩再重复同样动作，直至每边只剩一个元素（多开了额外空间）
 # 有点类似二叉树的搜索，用递归
@@ -255,9 +260,8 @@ def Print_Bitree_byLevel(T):
         print L[0].value
         L.remove(L[0])
 
-
-    
-T = node(1, node(2, node(4, node(8), node(9)), node(5)), node(3,node(6,None,node(10)),node(7)))
+# test codes:   
+# T = node(1, node(2, node(4, node(8), node(9)), node(5)), node(3,node(6,None,node(10)),node(7)))
 # Traverse_Bitree(T)
 # Print_Bitree_byLevel(T)
 
@@ -265,7 +269,100 @@ T = node(1, node(2, node(4, node(8), node(9)), node(5)), node(3,node(6,None,node
 # 对于一个二叉树, 判断是否关于根节点对称
 # 思路: 根节点的左右两块可以看做两个二叉树, 分别采用先序遍历和后序遍历的方法, 看结果是否相同
 
+# ===============
+# Viterbi算法
+# 输入: 1. m行n列的二维list [[a11,...,a1m],...], a1m 表示第1列第m个节点值
+#      2. m行m列的二维list, [[a11,...,am1], am1 表示第m个节点到第1个节点的路径值
+# 输出: 每列取一个元素, 和最大的路径
+# 思路: 略
 
+def find_best_path(nodes, final_idx): # backward find best path
+    best_path = [final_idx]
+    current_idx = final_idx
+    for v in nodes[::-1]:
+        current_idx = v[current_idx]
+        best_path.append(current_idx)
+    return best_path[::-1]
+
+def Viterbi(v_nodes, v_edges):
+    m=len(v_nodes[0])
+    best_nodes = [] # m行(n-1)列, 存储每步最优节点坐标
+    for idx,v_node in enumerate(v_nodes):
+        if idx==0:
+            current_best_pathValue=copy.copy(v_node)
+            previous_best_pathValue = copy.copy(current_best_pathValue)
+        else:
+            previous_best_node = []
+            for node_idx in xrange(m):
+                current_candidate_pathValue = map(sum, zip(previous_best_pathValue,v_edges[node_idx], [v_node[node_idx]]*m)) # add edge values
+                print current_candidate_pathValue
+                current_max_value = max(current_candidate_pathValue) # find max path value for now node
+                current_best_pathValue[node_idx]= current_max_value # update best path value for now node
+                previous_best_node.append(current_candidate_pathValue.index(current_max_value)) # update best previous node for now node
+            best_nodes.append(previous_best_node)
+            previous_best_pathValue = copy.copy(current_best_pathValue)
+    final_best_nodeIdx = current_best_pathValue.index(max(current_best_pathValue))
+    return find_best_path(best_nodes, final_best_nodeIdx)
+
+def test_Viterbi(v_nodes, v_edges): # 暴力方法求解, 仅仅为验证上面结果是否正确
+    n = len(v_nodes)
+    m = len(v_nodes[0])
+    best_value = -float('inf')
+    best_path = 0
+    for path in it.product(*[range(m)]*n): # 实现多重循环的功能，见 Evernote 20170306 2.
+        path_value = 0
+        for idx,node_idx in enumerate(path):
+            if idx==0:
+                path_value += v_nodes[idx][node_idx]
+            else:
+                path_value += v_nodes[idx][node_idx]+v_edges[node_idx][path[idx-1]]
+        if best_value < path_value:
+            best_value = path_value
+            best_path = path
+
+    return list(best_path)
+
+# test codes:
+# v_nodes = [[5,3,4,1],[1,1,50,9]]
+# v_edges = [[1,1,1,1]]*4
+# v_nodes = [[1,1,1]]*3
+# v_edges = [[0,133,0],[100,13,1],[1,3,51]]
+# v_nodes = np.random.randint(-10,10,size=(5,3)).tolist()
+# v_edges = np.random.randint(-3,3,size=(3,3)).tolist()
+# print test_Viterbi(v_nodes, v_edges)
+# print Viterbi(v_nodes, v_edges)
+
+# ===============
+# 有向无环图节点排序
+# 输入: 1. 根节点 [name1, name2, ...]
+#      2. 其他节点 {(parent_name1,...): child_name1, (parent_name...): child_name2}
+# 输出: 一个排好序的节点列表 [ name1, name2,...], 保证对一个孩子节点来说，它的父节点全部排在他前面
+# 思路: 见印象笔记 20170418~20170420 3.
+
+def ordered_directed_ayclic_graph(roots, G):
+
+    ordered_nodes = roots[:]
+    G1 = G.copy()
+    now_parents = set(roots[:])
+    while(G1 != {}):
+        G2=G1.copy()
+        parents=[]
+        for k in G2: # traverse all remained parent nodes
+            if G2[k] in ordered_nodes:
+                raise ValueError('Graph contains circles!')
+            if now_parents.issuperset(set(k)):
+                G1.pop(k)
+                ordered_nodes.append(G2[k])
+                # print ordered_nodes
+            else: parents+=list(k) # un-touched parents
+        now_parents = set(ordered_nodes)&set(parents)
+
+    return ordered_nodes
+
+# test codes:
+# G = {('1','2'):'4', ('3'):'5', ('4','3'):'6', ('4'):'7', ('7'):'8', ('1','8'):'9', ('6','9'):'10'}
+# roots = ['1','2','3']
+# print ordered_directed_ayclic_graph(roots, G)
 
 
 
