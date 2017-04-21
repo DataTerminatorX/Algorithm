@@ -67,7 +67,7 @@ def quick_sort(L, low_index, high_index):
     quick_sort(L, low_index, i-1)
     quick_sort(L, i+1,high_index)
 
-# test code    
+## test code    
 # L=[5,1,3,7,8,2,6,9,0,4,5,5,1,1]
 # quick_sort( L, 0, len(L)-1)
 # print L
@@ -260,7 +260,7 @@ def Print_Bitree_byLevel(T):
         print L[0].value
         L.remove(L[0])
 
-# test codes:   
+## test codes:   
 # T = node(1, node(2, node(4, node(8), node(9)), node(5)), node(3,node(6,None,node(10)),node(7)))
 # Traverse_Bitree(T)
 # Print_Bitree_byLevel(T)
@@ -322,7 +322,7 @@ def test_Viterbi(v_nodes, v_edges): # 暴力方法求解, 仅仅为验证上面�
 
     return list(best_path)
 
-# test codes:
+## test codes:
 # v_nodes = [[5,3,4,1],[1,1,50,9]]
 # v_edges = [[1,1,1,1]]*4
 # v_nodes = [[1,1,1]]*3
@@ -335,32 +335,31 @@ def test_Viterbi(v_nodes, v_edges): # 暴力方法求解, 仅仅为验证上面�
 # ===============
 # 有向无环图节点排序
 # 输入: 1. 根节点 [name1, name2, ...]
-#      2. 其他节点 {(parent_name1,...): child_name1, (parent_name...): child_name2}
+#      2. 所有孩子节点 [ [parent_name1,..., child_name1], [parent_name, child_name2], ..., ]
 # 输出: 一个排好序的节点列表 [ name1, name2,...], 保证对一个孩子节点来说，它的父节点全部排在他前面
 # 思路: 见印象笔记 20170418~20170420 3.
 
 def ordered_directed_ayclic_graph(roots, G):
-
     ordered_nodes = roots[:]
-    G1 = G.copy()
+    G1 = G[:]
     now_parents = set(roots[:])
-    while(G1 != {}):
-        G2=G1.copy()
+    while(G1 != []):
+        G2=G1[:]
         parents=[]
-        for k in G2: # traverse all remained parent nodes
-            if G2[k] in ordered_nodes:
+        for e in G2: # traverse all remained parent nodes e[:-1]
+            if e[-1] in ordered_nodes:
                 raise ValueError('Graph contains circles!')
-            if now_parents.issuperset(set(k)):
-                G1.pop(k)
-                ordered_nodes.append(G2[k])
+            if now_parents.issuperset(set(e[:-1])):
+                G1.remove(e)
+                ordered_nodes.append(e[-1])
                 # print ordered_nodes
-            else: parents+=list(k) # un-touched parents
+            else: parents+=e[:-1] # un-touched parents
         now_parents = set(ordered_nodes)&set(parents)
 
     return ordered_nodes
 
-# test codes:
-# G = {('1','2'):'4', ('3'):'5', ('4','3'):'6', ('4'):'7', ('7'):'8', ('1','8'):'9', ('6','9'):'10'}
+# # test codes:
+# G = [['1','2','4'], ['3','5'], ['4','3','6'], ['4','7'], ['7','8'], ['1','8','9'], ['6','9','10'], ['10','11'],['10','12']]
 # roots = ['1','2','3']
 # print ordered_directed_ayclic_graph(roots, G)
 
