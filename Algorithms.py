@@ -1,7 +1,6 @@
-﻿import math,random,copy
+﻿from __future__ import print_function
 import itertools as it
-import numpy as np
-
+import copy
 '''
 目录
 |--冒泡排序
@@ -18,7 +17,7 @@ import numpy as np
           |--树分层打印
           |--判断镜像树 ToDo
 |--Viterbi算法(动态规划)
-|--有向无环图节点排序
+|--有向无环图节点的拓扑排序
 '''
 
 # =================
@@ -27,8 +26,8 @@ import numpy as np
 
 def bubble_sort(L):
     n=len(L)
-    for i in xrange(n-1):
-        for j in xrange(n-i-1):
+    for i in range(n-1):
+        for j in range(n-i-1):
             if L[j]>L[j+1]:
                 L[j], L[j+1]=L[j+1],L[j] # 交换俩元素位置
 # L=[4,1,9,7,5,3,6,8,2]
@@ -82,7 +81,7 @@ def quick_sort_unperfect(L, low_index, high_index): # 这个方法开了额外�
     low_L=[]
     high_L=[]
     key_cnt=0 # 给sub_L中相同的key计数
-    for i in xrange(len(sub_L)):
+    for i in range(len(sub_L)):
         if sub_L[i]==key:
             key_cnt+=1
         elif sub_L[i]<key:
@@ -90,9 +89,9 @@ def quick_sort_unperfect(L, low_index, high_index): # 这个方法开了额外�
         else:
             high_L.append(sub_L[i])
     L[low_index:high_index]=low_L+[key]*key_cnt+high_L # 排序完替代L中原原始部分，因为函数参数是引用，因而可以改变实际的L
-    if len(low_L) <>0:
+    if len(low_L) != 0:
         quick_sort(L, low_index, low_index+len( low_L ) ) # L中接下来要排序的区域
-    if len(high_L) <>0:
+    if len(high_L) != 0:
         quick_sort( L, high_index-len(high_L), high_index )
 # L=[4,1,5,8,9,1,3,2,2,6,7,8,0,5,2]
 # quick_sort_unperfect( L, 0, len(L) )
@@ -116,21 +115,21 @@ def merge_sort(L, low_index, high_index):
         merge_sort(L, low_index, mid_index)
         merge_sort(L, mid_index+1, high_index)
     
-    if high_index <> low_index: # 当L是奇数时会出现分到最后只有单个数的情形, 此时要返回, 只有不是单个数时, 才进行下面的排序
+    if high_index != low_index: # 当L是奇数时会出现分到最后只有单个数的情形, 此时要返回, 只有不是单个数时, 才进行下面的排序
         # 合并两个有序列表变成一整个有序列表的细节:
         i = low_index 
         j = mid_index+1 # i,j 两个索引分别初始化为指向两列表最开始
         sub_L = [] # 用于存放排序结果
-        while  ( len(sub_L) <> (high_index-low_index+1) ):
+        while  ( len(sub_L) != (high_index-low_index+1) ):
             if L[i] <= L[j]:
                 sub_L.append( L[i] )
-                if i <> mid_index:
+                if i != mid_index:
                     i += 1
                 else:
                     sub_L.extend( L[j:high_index+1] ) # 当一个列表索引到尾, 另一个如果当前元素比尾大, 则不用继续比较, 另一个的后面肯定都比尾大.
             else:
                 sub_L.append( L[j] )
-                if j <> high_index:
+                if j != high_index:
                     j += 1
                 else:
                     sub_L.extend( L[i:mid_index+1] ) 
@@ -156,24 +155,24 @@ def inverse_pair(L, low_index, high_index):
         sub_result = inverse_pair(L, mid_index+1, high_index)
         result.extend(sub_result)
     
-    if high_index <> low_index: # 当L是奇数时会出现分到最后只有单个数的情形
+    if high_index != low_index: # 当L是奇数时会出现分到最后只有单个数的情形
     
         # 合并两个有序列表变成一整个有序列表并在此过程中打印逆序对儿
         i = low_index 
         j = mid_index+1 # i,j 两个索引分别初始化为指向两列表最开始
         sub_L = [] # 用于存放排序结果
-        while  ( len(sub_L) <> (high_index-low_index+1) ):
+        while  ( len(sub_L) != (high_index-low_index+1) ):
             if L[i] <= L[j]:
                 sub_L.append( L[i] )
-                if i <> mid_index:
+                if i != mid_index:
                     i += 1
                 else:
                     sub_L.extend( L[j:high_index+1] ) # 当一个列表索引到尾, 另一个如果当前元素比尾大, 则不用继续比较, 另一个的后面肯定都比尾大.
             else:
                 sub_L.append( L[j] )
-                for k in xrange(i, mid_index+1):
+                for k in range(i, mid_index+1):
                     result.append( ( L[k], L[j] ) ) #当左半数组的L[i]比右半数组L[j]大时，L[i]向后的每一个数，都可以与L[j]构成逆序对儿。
-                if j <> high_index:
+                if j != high_index:
                     j += 1
                 else:
                     sub_L.extend( L[i:mid_index+1] ) 
@@ -197,7 +196,7 @@ def max_sub(L):
     max_sum = 0
     now_sum = 0
     max_neg = L[0] # 用来记录最大负数
-    for idx in xrange(len(L)):
+    for idx in range(len(L)):
         now_sum += L[idx]
         if now_sum <= 0:
             now_sum = 0
@@ -210,7 +209,7 @@ def max_sub(L):
             max_neg = L[idx]
             k = idx
     
-    print i,j
+    print(i,j)
     if max_sum == 0: # 说明都是负数
         return L[k], max_neg
     else:
@@ -239,25 +238,25 @@ class node(object):
 
 # 2. 后续遍历
 def Traverse_Bitree(T):
-    if T.left <> None:
+    if T.left != None:
         Traverse_Bitree(T.left)
     
-    if T.right <> None:
+    if T.right != None:
         Traverse_Bitree(T.right)
     
-    print T.value
+    print(T.value)
 
 # 3. 树分层打印(类似图的广度优先搜索策略)
 # 用一个队列, 先将根节点放进去, 然后: s1. 将目前处理的节点的左右孩子放到队列末尾 s2. 删除当前节点并处理下一个节点
 def Print_Bitree_byLevel(T):
     L = [] # 类似队列, L.remove(L[0]) 可以去除队首元素, L.append(element)可以增添队尾元素
     L.append(T) #初始化
-    while (len(L) <> 0):
-        if L[0].left <> None:
+    while (len(L) != 0):
+        if L[0].left != None:
             L.append(L[0].left)
-        if L[0].right <> None:
+        if L[0].right != None:
             L.append(L[0].right)
-        print L[0].value
+        print(L[0].value)
         L.remove(L[0])
 
 ## test codes:   
@@ -293,9 +292,9 @@ def Viterbi(v_nodes, v_edges):
             previous_best_pathValue = copy.copy(current_best_pathValue)
         else:
             previous_best_node = []
-            for node_idx in xrange(m):
+            for node_idx in range(m):
                 current_candidate_pathValue = map(sum, zip(previous_best_pathValue,v_edges[node_idx], [v_node[node_idx]]*m)) # add edge values
-                print current_candidate_pathValue
+                print(current_candidate_pathValue)
                 current_max_value = max(current_candidate_pathValue) # find max path value for now node
                 current_best_pathValue[node_idx]= current_max_value # update best path value for now node
                 previous_best_node.append(current_candidate_pathValue.index(current_max_value)) # update best previous node for now node
@@ -335,11 +334,11 @@ def test_Viterbi(v_nodes, v_edges): # 暴力方法求解, 仅仅为验证上面�
 # ===============
 # 有向无环图节点排序
 # 输入: 1. 根节点 [name1, name2, ...]
-#      2. 所有孩子节点 [ [parent_name1,..., child_name1], [parent_name, child_name2], ..., ]
+#      2. 所有孩子节点 [ [parent_name1,..., child_name1], [parent_name2, child_name2], ..., ]
 # 输出: 一个排好序的节点列表 [ name1, name2,...], 保证对一个孩子节点来说，它的父节点全部排在他前面
 # 思路: 见印象笔记 20170418~20170420 3.
 
-def ordered_directed_ayclic_graph(roots, G):
+def ordered_directed_acyclic_graph(roots, G):
     ordered_nodes = roots[:]
     G1 = G[:]
     now_parents = set(roots[:])
@@ -362,8 +361,6 @@ def ordered_directed_ayclic_graph(roots, G):
 # G = [['1','2','4'], ['3','5'], ['4','3','6'], ['4','7'], ['7','8'], ['1','8','9'], ['6','9','10'], ['10','11'],['10','12']]
 # roots = ['1','2','3']
 # print ordered_directed_ayclic_graph(roots, G)
-
-
 
 
 
