@@ -334,15 +334,48 @@ def test_Viterbi(v_nodes, v_edges): # 暴力方法求解, 仅仅为验证上面�
 # ===============
 # 有向无环图节点排序
 # 输入: 1. 根节点 [name1, name2, ...]
-#      2. 所有孩子节点 [ [parent_name1,..., child_name1], [parent_name2, child_name2], ..., ]
+#       2. 所有孩子节点与他们的父节点关系的列表 [ [parent_name1, parent_name2, ..., child_name1], [parent_name3, child_name2], ..., ]
 # 输出: 一个排好序的节点列表 [ name1, name2,...], 保证对一个孩子节点来说，它的父节点全部排在他前面
-# 思路: 见印象笔记 20170418~20170420 3.
+# 思路一/二: 见印象笔记 20170418~20170420 3.
 
-def ordered_directed_acyclic_graph(roots, G):
-    ordered_nodes = roots[:]
+import itertools as it
+def order_dag_new(roots, G):
+    G_ = G[:]
+    visited_nodes = set()
+    node_levels = {}.fromkeys(it.chain(*G))
+
+    # initialize roots
+    for root in roots:
+        node_levels[root] = 0
+        visited_nodes.add(root)
+        
+    # process child nodes
+    while G_:
+        contain_circle = True
+        unvisited_G = []
+        for edge in G_:
+            child_node = edge[-1] 
+            parent_nodes = edge[:-1]            
+            is_target = all(True if e in visited_nodes else False for e in edge[:-1])
+            if is_target:
+                contain_circle = False
+                node_levels[child_node] = max(node_levels[e] for e in parent_nodes) + 1 
+                visited_nodes.add(child_node)
+            else:
+                unvisited_G.append(edge)
+        if contain_circle:
+            raise ValueError('Graph contains circles!')
+        G_ = unvisited_G
+        
+    ordered_nodes =[e[0] for e in sorted(node_levels.items(), key=lambda x: x[1], reverse=False)]
+    return ordered_nodes
+
+# 该方法对环的判断有问题
+def order_dag(roots, G):
     G1 = G[:]
+    ordered_nodes = roots[:]
     now_parents = set(roots[:])
-    while(G1 != []):
+    while G1:
         G2=G1[:]
         parents=[]
         for e in G2: # traverse all remained parent nodes e[:-1]
@@ -360,9 +393,9 @@ def ordered_directed_acyclic_graph(roots, G):
 # # test codes:
 # G = [['1','2','4'], ['3','5'], ['4','3','6'], ['4','7'], ['7','8'], ['1','8','9'], ['6','9','10'], ['10','11'],['10','12']]
 # roots = ['1','2','3']
-# print ordered_directed_ayclic_graph(roots, G)
+# print order_dag_new(roots, G) # not contain circle
 
-
-
-
+# G = [[1,8,9], [1,4], [9,4,7], [7,8], [1,8,9]]
+# roots = [1]
+# print order_dag_new(roots, G) # contain circle
 
